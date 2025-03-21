@@ -25,7 +25,7 @@ import boom.v4.util._
 /**
   * IO Bundle representing RoCC shim interface with the core
   */
-class RoCCShimCoreIO(implicit p: Parameters) extends BoomBundle
+class RoCCShimCoreIO(val nRoCCCSRs: Int = 0)(implicit p: Parameters) extends BoomBundle
 {
   // Decode Stage
   val dis_rocc_vals    = Input(Vec(coreWidth, Bool()))
@@ -36,16 +36,16 @@ class RoCCShimCoreIO(implicit p: Parameters) extends BoomBundle
   val rob_pnr_idx      = Input(UInt(robAddrSz.W))
   val rob_head_idx     = Input(UInt(robAddrSz.W))
 
-  val rocc             = Flipped(new RoCCCoreIO)
+  val rocc             = Flipped(new RoCCCoreIO(nRoCCCSRs))
 }
 
 /**
  * IO bundle representing the different signals to interact with the RoCC
  * Vaguely follows the IO of a functional unit.
   */
-class RoCCShimIO(implicit p: Parameters) extends BoomBundle
+class RoCCShimIO(val nRoCCCSRs: Int = 0)(implicit p: Parameters) extends BoomBundle
 {
-  val core             = new RoCCShimCoreIO
+  val core             = new RoCCShimCoreIO(nRoCCCSRs)
 
   val req              = Flipped(new DecoupledIO(new FuncUnitReq(xLen)))
   val resp             = new DecoupledIO(new ExeUnitResp(xLen))
@@ -65,9 +65,9 @@ class RCQEntry(implicit p: Parameters) extends BoomBundle {
   *  - After issue, holds queue of translations between logical and physical
   *    specifiers to handle RoCC responses
   */
-class RoCCShim(implicit p: Parameters) extends BoomModule
+class RoCCShim(val nRoCCCSRs: Int = 0)(implicit p: Parameters) extends BoomModule
 {
-  val io = IO(new RoCCShimIO)
+  val io = IO(new RoCCShimIO(nRoCCCSRs))
 
   io.req.ready := true.B
   io.core.rocc.exception := false.B
@@ -277,4 +277,5 @@ class RoCCShim(implicit p: Parameters) extends BoomModule
     }
   }
 
+  io.core.rocc.csrs.foreach {_ <> DontCare}
 }

@@ -332,7 +332,8 @@ class UniqueExeUnit(
   val hasMul           : Boolean       = false,
   val hasDiv           : Boolean       = false,
   val hasIfpu          : Boolean       = false,
-  val hasRocc          : Boolean       = false
+  val hasRocc          : Boolean       = false,
+  val nRoCCCSRs        : Int           = 0
 )(implicit p: Parameters) extends ExecutionUnit("Unq")
   with HasIrfReadPorts
   with HasImmrfReadPort
@@ -413,9 +414,9 @@ class UniqueExeUnit(
 
   val (io_rocc_resp, io_rocc_core) = if (hasRocc) {
     require(hasCSR)
-    val rocc_core = IO(new RoCCShimCoreIO)
+    val rocc_core = IO(new RoCCShimCoreIO(nRoCCCSRs))
     val rocc_resp = IO(Decoupled(new ExeUnitResp(xLen)))
-    val rocc = Module(new RoCCShim)
+    val rocc = Module(new RoCCShim(nRoCCCSRs))
     rocc.io.req.valid         := exe_uop.valid && exe_uop.bits.is_rocc
     rocc.io.req.bits          := exe_int_req
     rocc.io.brupdate          := io_brupdate // We should assert on this somewhere

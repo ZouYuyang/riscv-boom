@@ -84,7 +84,8 @@ class BoomCore(roccCSRs: Seq[Seq[CustomCSR]])(implicit p: Parameters) extends Bo
       hasRocc = usingRoCC,
       hasMul = true,
       hasDiv = true,
-      hasIfpu = true
+      hasIfpu = true,
+      nRoCCCSRs = nTotalRoCCCSRs
     )).suggestName(s"unique_exe_unit_0")
   )
   val unq_exe_unit = unq_exe_units(0)
@@ -1371,7 +1372,8 @@ class BoomCore(roccCSRs: Seq[Seq[CustomCSR]])(implicit p: Parameters) extends Bo
   io.rocc.csrs <> csr.io.roccCSRs
   if (usingRoCC) {
     val rocc_unit = unq_exe_unit
-    rocc_unit.io_rocc_core.get.rocc         <> io.rocc
+    rocc_unit.io_rocc_core.get.rocc         <> io.rocc  // This overrides our CSR routing, fix in next line
+    io.rocc.csrs <> csr.io.roccCSRs
     rocc_unit.io_rocc_core.get.dis_uops     := dis_uops
     rocc_unit.io_rocc_core.get.rob_head_idx := rob.io.rob_head_idx
     rocc_unit.io_rocc_core.get.rob_pnr_idx  := rob.io.rob_pnr_idx
